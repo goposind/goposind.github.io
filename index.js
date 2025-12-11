@@ -712,7 +712,7 @@ const ChatbotDemo = {
         }
     },
 
-    sendMessage() {
+    async sendMessage() {
         const text = this.input?.value.trim();
         if (!text) return;
 
@@ -723,12 +723,27 @@ const ChatbotDemo = {
         // Show typing indicator
         this.showTyping();
 
-        // Generate response after delay
-        setTimeout(() => {
-            this.hideTyping();
-            const response = this.generateResponse(text);
-            this.addMessage(response, 'bot');
-        }, 1000 + Math.random() * 1000);
+        // Check if Gemini AI is available
+        if (window.GeminiChatbot && window.GeminiChatbot.isReady) {
+            try {
+                // Use Gemini AI for response
+                const response = await window.GeminiChatbot.generateResponse(text);
+                this.hideTyping();
+                this.addMessage(response, 'bot');
+            } catch (error) {
+                console.error('Gemini error, falling back to static response:', error);
+                this.hideTyping();
+                const response = this.generateResponse(text);
+                this.addMessage(response, 'bot');
+            }
+        } else {
+            // Fallback to static responses
+            setTimeout(() => {
+                this.hideTyping();
+                const response = this.generateResponse(text);
+                this.addMessage(response, 'bot');
+            }, 1000 + Math.random() * 1000);
+        }
     },
 
     addMessage(text, type) {

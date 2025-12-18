@@ -603,31 +603,87 @@ const FloatingCards = {
     }
 };
 
+// ===== Helper Functions for Ongkir Parsing =====
+function parseOngkirMessage(msg) {
+    let origin = '';
+    let destination = '';
+    let weight = 1; // default 1kg
+
+    // Convert to lowercase for easier parsing
+    const lowerMsg = msg.toLowerCase();
+
+    // Extract weight (e.g., "20kg", "20 kg", "5kg")
+    const weightMatch = lowerMsg.match(/(\d+)\s*kg/);
+    if (weightMatch) {
+        weight = parseInt(weightMatch[1]) || 1;
+    }
+
+    // Remove keywords and weight for cleaner parsing
+    let cleanMsg = lowerMsg
+        .replace(/ongkir|ongkos|tarif|harga|kirim|biaya|berapa|cek|dari/gi, '')
+        .replace(/(\d+)\s*kg/g, '')
+        .trim();
+
+    // Pattern: "[origin] ke [destination]"
+    if (cleanMsg.includes(' ke ')) {
+        const parts = cleanMsg.split(' ke ');
+        if (parts.length >= 2) {
+            // Get origin - last word before "ke"
+            const originPart = parts[0].trim();
+            const originWords = originPart.split(/\s+/).filter(w => w.length > 0);
+            if (originWords.length > 0) {
+                origin = capitalizeCity(originWords[originWords.length - 1]);
+            }
+
+            // Get destination - first word after "ke"
+            const destPart = parts[1].trim();
+            const destWords = destPart.split(/\s+/).filter(w => w.length > 0);
+            if (destWords.length > 0) {
+                destination = capitalizeCity(destWords[0]);
+            }
+        }
+    }
+
+    return { origin, destination, weight };
+}
+
+function capitalizeCity(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+function formatRupiah(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
 // ===== Chatbot Demo Widget =====
 const ChatbotDemo = {
     responses: {
-        resi: {
-            pattern: /resi|tracking|lacak|cek.*resi/i,
-            reply: (msg) => {
-                const resiMatch = msg.match(/[A-Z]{2}\d+[A-Z]{2}|\d{10,}/i);
-                const resiNo = resiMatch ? resiMatch[0].toUpperCase() : 'EX123456789ID';
-                return `📦 **Status Pengiriman**\n\n` +
-                    `Resi: ${resiNo}\n` +
-                    `Status: ✅ Dalam Perjalanan\n` +
-                    `Posisi: Hub Semarang\n` +
-                    `Estimasi: ${new Date(Date.now() + 86400000).toLocaleDateString('id-ID')}\n\n` +
-                    `_Catatan: Ini adalah demo. Untuk cek resi asli, hubungi kami via WhatsApp._`;
-            }
-        },
         ongkir: {
-            pattern: /ongkir|ongkos|tarif|harga|kirim/i,
+            pattern: /ongkir|ongkos|tarif|harga|kirim|biaya/i,
             reply: (msg) => {
-                return `💰 **Estimasi Ongkos Kirim**\n\n` +
-                    `Jakarta → Bandung (1kg)\n` +
-                    `• Pos Express: Rp 25.000 (1 hari)\n` +
-                    `• Kilat Khusus: Rp 18.000 (2-3 hari)\n` +
-                    `• Reguler: Rp 12.000 (5-7 hari)\n\n` +
-                    `_Untuk cek ongkir tujuan lain, kirim: "ongkir [asal] ke [tujuan] [berat]"_`;
+                // Parse user input to extract origin, destination, and weight
+                const result = parseOngkirMessage(msg);
+
+                if (result.origin && result.destination) {
+                    // Calculate prices based on weight
+                    const expressPrice = result.weight * 25000;
+                    const kilatPrice = result.weight * 18000;
+                    const regulerPrice = result.weight * 12000;
+
+                    return `� **Estimasi Ongkos Kirim**\n\n` +
+                        `${result.origin} → ${result.destination} (${result.weight}kg)\n\n` +
+                        `• Pos Express: Rp ${formatRupiah(expressPrice)} (1-2 hari)\n` +
+                        `• Kilat Khusus: Rp ${formatRupiah(kilatPrice)} (2-4 hari)\n` +
+                        `• Reguler: Rp ${formatRupiah(regulerPrice)} (5-7 hari)\n\n` +
+                        `_💡 Tarif di atas merupakan estimasi._`;
+                }
+
+                // Fallback if can't parse
+                return `💰 **Cek Ongkos Kirim**\n\n` +
+                    `Untuk menghitung ongkir, kirim dengan format:\n` +
+                    `"ongkir [asal] ke [tujuan] [berat]kg"\n\n` +
+                    `Contoh: "ongkir Jakarta ke Surabaya 5kg"`;
             }
         },
         kantor: {
@@ -659,7 +715,7 @@ const ChatbotDemo = {
             reply: () => {
                 const hour = new Date().getHours();
                 const greeting = hour < 11 ? 'Selamat pagi' : hour < 15 ? 'Selamat siang' : hour < 18 ? 'Selamat sore' : 'Selamat malam';
-                return `👋 ${greeting}! Saya GOPOS Bot.\n\nAda yang bisa saya bantu? Ketik:\n• "cek resi" untuk lacak paket\n• "ongkir" untuk cek tarif\n• "kantor pos" untuk cari lokasi`;
+                return `👋 ${greeting}! Saya GOPOS Bot.\n\nAda yang bisa saya bantu? Ketik:\n• "ongkir [asal] ke [tujuan] [berat]kg" untuk cek tarif\n• "kantor pos" untuk cari lokasi\n• "layanan" untuk info layanan pos`;
             }
         },
         thanks: {
@@ -667,7 +723,7 @@ const ChatbotDemo = {
             reply: () => `Sama-sama! 😊 Jika ada pertanyaan lain, jangan ragu untuk bertanya ya! 📮`
         },
         default: {
-            reply: () => `Maaf, saya belum mengerti pertanyaan Anda. 🤔\n\nCoba ketik:\n• "cek resi" + nomor resi\n• "ongkir" untuk tarif pengiriman\n• "kantor pos" untuk cari lokasi\n\nAtau klik tombol di bawah untuk bantuan cepat!`
+            reply: () => `Maaf, saya belum mengerti pertanyaan Anda. 🤔\n\nCoba ketik:\n• "ongkir [asal] ke [tujuan] [berat]kg" untuk tarif\n• "kantor pos [kota]" untuk cari lokasi\n• "layanan" untuk info layanan\n\nAtau klik tombol di bawah untuk bantuan cepat!`
         }
     },
 

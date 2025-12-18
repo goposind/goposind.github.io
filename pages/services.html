@@ -201,57 +201,7 @@
     </main>
 
     <script src="../dashboard.js"></script>
-    <script>
-        function showAddModal() {
-            Swal.fire({
-                title: 'Tambah Layanan Baru',
-                html: `
-          <input type="text" id="swal-code" class="swal2-input" placeholder="Kode Layanan">
-          <input type="text" id="swal-name" class="swal2-input" placeholder="Nama Layanan">
-          <input type="text" id="swal-desc" class="swal2-input" placeholder="Deskripsi">
-          <input type="text" id="swal-time" class="swal2-input" placeholder="Estimasi Waktu">
-        `,
-                showCancelButton: true,
-                confirmButtonText: 'Simpan',
-                cancelButtonText: 'Batal',
-                preConfirm: () => {
-                    return {
-                        code: document.getElementById('swal-code').value,
-                        name: document.getElementById('swal-name').value,
-                        desc: document.getElementById('swal-desc').value,
-                        time: document.getElementById('swal-time').value
-                    }
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire('Berhasil!', 'Layanan baru berhasil ditambahkan', 'success');
-                }
-            });
-        }
-
-        function editService(code) {
-            Swal.fire({
-                title: `Edit Layanan ${code}`,
-                text: 'Fitur edit akan segera tersedia',
-                icon: 'info'
-            });
-        }
-
-        function deleteService(code) {
-            Swal.fire({
-                title: 'Hapus Layanan?',
-                text: `Apakah Anda yakin ingin menghapus layanan ${code}?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Hapus',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire('Berhasil!', 'Layanan berhasil dihapus', 'success');
-                }
-            });
-        }
-    </script>
+    <script src="js/services.js"></script>
 </body>
 
 </html>

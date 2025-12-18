@@ -48,6 +48,8 @@
                         class="nav-text">Users</span></a>
                 <a href="feedback.html" class="nav-item"><span class="nav-icon">⭐</span><span
                         class="nav-text">Feedback</span></a>
+                <a href="settings.html" class="nav-item"><span class="nav-icon">⚙️</span><span
+                        class="nav-text">Settings</span></a>
             </div>
         </nav>
         <div class="sidebar-footer">
@@ -196,26 +198,7 @@
     </main>
 
     <script src="../dashboard.js"></script>
-    <script>
-        function showAddModal() {
-            Swal.fire({
-                title: 'Tambah Tarif Baru',
-                html: `
-          <select id="swal-origin" class="swal2-input"><option>Pilih Kota Asal</option></select>
-          <select id="swal-dest" class="swal2-input"><option>Pilih Kota Tujuan</option></select>
-          <select id="swal-service" class="swal2-input"><option>Pilih Layanan</option></select>
-          <input type="number" id="swal-rate" class="swal2-input" placeholder="Tarif (Rp)">
-        `,
-                showCancelButton: true,
-                confirmButtonText: 'Simpan',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire('Berhasil!', 'Tarif berhasil ditambahkan', 'success');
-                }
-            });
-        }
-    </script>
+    <script src="js/rates.js"></script>
 </body>
 
 </html>

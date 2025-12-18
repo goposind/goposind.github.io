@@ -233,7 +233,7 @@ const ChartManager = {
         this.questionChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Cek Resi', 'Cek Ongkir', 'Cari Kantor', 'Lainnya'],
+                labels: ['Cek Ongkir', 'Cari Kantor', 'Layanan', 'Lainnya'],
                 datasets: [{
                     data: [45, 30, 15, 10],
                     backgroundColor: [
@@ -321,20 +321,20 @@ const NotificationManager = {
             Swal.fire({
                 title: 'Notifikasi',
                 html: `
-          <div style="text-align: left;">
+        <div style="text-align: left;">
             <div style="padding: 12px; border-bottom: 1px solid #e2e8f0;">
-              <strong>📦 Resi Baru</strong><br>
-              <small style="color: #64748b;">5 resi baru dilacak 2 menit lalu</small>
+                <strong>📦 Resi Baru</strong><br>
+                <small style="color: #64748b;">5 resi baru dilacak 2 menit lalu</small>
             </div>
             <div style="padding: 12px; border-bottom: 1px solid #e2e8f0;">
-              <strong>⭐ Feedback Baru</strong><br>
-              <small style="color: #64748b;">3 feedback baru masuk 10 menit lalu</small>
+                <strong>⭐ Feedback Baru</strong><br>
+                <small style="color: #64748b;">3 feedback baru masuk 10 menit lalu</small>
             </div>
             <div style="padding: 12px;">
-              <strong>💬 Chat Pending</strong><br>
-              <small style="color: #64748b;">12 chat menunggu respon</small>
+                <strong>💬 Chat Pending</strong><br>
+                <small style="color: #64748b;">12 chat menunggu respon</small>
             </div>
-          </div>
+        </div>
         `,
                 showConfirmButton: false,
                 showCloseButton: true

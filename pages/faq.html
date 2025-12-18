@@ -12,74 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="../index.css">
     <link rel="stylesheet" href="../dashboard.css">
-    <style>
-        .faq-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            margin-bottom: 12px;
-            overflow: hidden;
-        }
-
-        .faq-question {
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: var(--transition-fast);
-        }
-
-        .faq-question:hover {
-            background: var(--bg-card-hover);
-        }
-
-        .faq-question h4 {
-            font-weight: 600;
-            flex: 1;
-        }
-
-        .faq-toggle {
-            font-size: 1.2rem;
-            transition: transform 0.3s;
-        }
-
-        .faq-item.open .faq-toggle {
-            transform: rotate(180deg);
-        }
-
-        .faq-answer {
-            padding: 0 20px;
-            max-height: 0;
-            overflow: hidden;
-            transition: all 0.3s;
-        }
-
-        .faq-item.open .faq-answer {
-            padding: 0 20px 20px;
-            max-height: 500px;
-        }
-
-        .faq-actions {
-            display: flex;
-            gap: 8px;
-            margin-left: 16px;
-        }
-
-        .faq-category {
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            background: rgba(30, 58, 95, 0.2);
-            color: var(--pos-navy);
-            border-radius: var(--radius-full);
-            margin-right: 12px;
-        }
-
-        [data-theme="dark"] .faq-category {
-            background: rgba(242, 101, 34, 0.2);
-            color: var(--pos-orange);
-        }
-    </style>
+    <link rel="stylesheet" href="css/faq.css">
 </head>
 
 <body class="dashboard-body">
@@ -117,6 +50,8 @@
                         class="nav-text">Users</span></a>
                 <a href="feedback.html" class="nav-item"><span class="nav-icon">⭐</span><span
                         class="nav-text">Feedback</span></a>
+                <a href="settings.html" class="nav-item"><span class="nav-icon">⚙️</span><span
+                        class="nav-text">Settings</span></a>
             </div>
         </nav>
         <div class="sidebar-footer">
@@ -153,7 +88,7 @@
                 <div class="faq-item open">
                     <div class="faq-question" onclick="toggleFaq(this)">
                         <span class="faq-category">Pengiriman</span>
-                        <h4>Bagaimana cara cek resi pengiriman?</h4>
+                        <h4>Bagaimana cara cek ongkos kirim?</h4>
                         <div class="faq-actions">
                             <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation()">✏️</button>
                             <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation()">🗑️</button>
@@ -161,9 +96,10 @@
                         <span class="faq-toggle">▼</span>
                     </div>
                     <div class="faq-answer">
-                        <p>Untuk cek resi pengiriman, Anda dapat mengirimkan nomor resi ke chatbot GOPOS melalui
-                            WhatsApp. Format: ketik "cek resi [nomor resi]" contoh: "cek resi EX123456789ID". Sistem
-                            akan otomatis menampilkan status terkini paket Anda.</p>
+                        <p>Untuk cek ongkos kirim, Anda dapat mengirimkan pesan ke chatbot GOPOS melalui
+                            WhatsApp. Format: ketik "ongkir [asal] ke [tujuan] [berat]kg" contoh: "ongkir Jakarta ke
+                            Surabaya 5kg". Sistem
+                            akan otomatis menghitung estimasi tarif untuk berbagai layanan pengiriman.</p>
                     </div>
                 </div>
 
@@ -237,37 +173,7 @@
     </main>
 
     <script src="../dashboard.js"></script>
-    <script>
-        function toggleFaq(element) {
-            const item = element.parentElement;
-            item.classList.toggle('open');
-        }
-
-        function showAddModal() {
-            Swal.fire({
-                title: 'Tambah FAQ Baru',
-                html: `
-          <select id="swal-category" class="swal2-input">
-            <option>Pilih Kategori</option>
-            <option>Pengiriman</option>
-            <option>Tarif</option>
-            <option>Layanan</option>
-            <option>Kantor Pos</option>
-            <option>Umum</option>
-          </select>
-          <input type="text" id="swal-question" class="swal2-input" placeholder="Pertanyaan">
-          <textarea id="swal-answer" class="swal2-textarea" placeholder="Jawaban"></textarea>
-        `,
-                showCancelButton: true,
-                confirmButtonText: 'Simpan',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire('Berhasil!', 'FAQ berhasil ditambahkan', 'success');
-                }
-            });
-        }
-    </script>
+    <script src="js/faq.js"></script>
 </body>
 
 </html>

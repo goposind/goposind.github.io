@@ -168,24 +168,6 @@ const MobileMenuManager = {
         links?.forEach(link => {
             link.addEventListener('click', () => this.close());
         });
-
-        // Mobile login/register buttons
-        const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-        const mobileRegisterBtn = document.getElementById('mobileRegisterBtn');
-
-        if (mobileLoginBtn) {
-            mobileLoginBtn.addEventListener('click', () => {
-                this.close();
-                ModalManager.open('loginModal');
-            });
-        }
-
-        if (mobileRegisterBtn) {
-            mobileRegisterBtn.addEventListener('click', () => {
-                this.close();
-                ModalManager.open('registerModal');
-            });
-        }
     },
 
     open() {
@@ -207,9 +189,7 @@ const ModalManager = {
     },
 
     bindEvents() {
-        // Open modal buttons
-        document.getElementById('loginBtn')?.addEventListener('click', () => this.open('loginModal'));
-        document.getElementById('registerBtn')?.addEventListener('click', () => this.open('registerModal'));
+        // Modal functionality removed - login/register features disabled
 
         // Close buttons
         this.modals.forEach(modal => {
@@ -261,195 +241,17 @@ const ModalManager = {
     }
 };
 
-// ===== Form Handling =====
+// ===== Form Handling (Disabled - Login/Register removed) =====
 const FormManager = {
     init() {
-        this.bindEvents();
-    },
-
-    bindEvents() {
-        // Login form
-        document.getElementById('loginForm')?.addEventListener('submit', (e) => this.handleLogin(e));
-
-        // Register form
-        document.getElementById('registerForm')?.addEventListener('submit', (e) => this.handleRegister(e));
-
-        // Reset form
-        document.getElementById('resetForm')?.addEventListener('submit', (e) => this.handleReset(e));
-
-        // Password toggle
-        document.querySelectorAll('.password-toggle').forEach(btn => {
-            btn.addEventListener('click', (e) => this.togglePassword(e));
-        });
-    },
-
-    togglePassword(e) {
-        const input = e.currentTarget.previousElementSibling;
-        const icon = e.currentTarget.querySelector('span');
-
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.textContent = '🔒';
-        } else {
-            input.type = 'password';
-            icon.textContent = '👁';
-        }
-    },
-
-    async handleLogin(e) {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-
-        // Show loading
-        Alert.loading('Memproses login...');
-
-        // Simulate API call
-        await this.delay(1500);
-
-        // Close loading and show success
-        Swal.close();
-
-        // Store user data
-        const userData = { email, name: email.split('@')[0] };
-        localStorage.setItem('gopos-user', JSON.stringify(userData));
-
-        await Alert.success('Login Berhasil!', `Selamat datang kembali, ${userData.name}!`);
-
-        ModalManager.close('loginModal');
-        UserManager.updateUI();
-        document.getElementById('loginForm').reset();
-    },
-
-    async handleRegister(e) {
-        e.preventDefault();
-        const name = document.getElementById('registerName').value;
-        const email = document.getElementById('registerEmail').value;
-        const password = document.getElementById('registerPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-
-        // Validate password match
-        if (password !== confirmPassword) {
-            Alert.error('Oops!', 'Password tidak cocok. Silakan coba lagi.');
-            return;
-        }
-
-        // Show loading
-        Alert.loading('Membuat akun...');
-
-        // Simulate API call
-        await this.delay(1500);
-
-        // Close loading and show success
-        Swal.close();
-
-        // Store user data
-        const userData = { email, name };
-        localStorage.setItem('gopos-user', JSON.stringify(userData));
-
-        await Alert.success('Registrasi Berhasil!', `Selamat datang di GOPOS, ${name}!`);
-
-        ModalManager.close('registerModal');
-        UserManager.updateUI();
-        document.getElementById('registerForm').reset();
-    },
-
-    async handleReset(e) {
-        e.preventDefault();
-        const email = document.getElementById('resetEmail').value;
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmNewPassword = document.getElementById('confirmNewPassword').value;
-
-        // Validate password match
-        if (newPassword !== confirmNewPassword) {
-            Alert.error('Oops!', 'Password baru tidak cocok. Silakan coba lagi.');
-            return;
-        }
-
-        // Show loading
-        Alert.loading('Mereset password...');
-
-        // Simulate API call
-        await this.delay(1500);
-
-        // Close loading and show success
-        Swal.close();
-
-        await Alert.success('Password Berhasil Direset!', 'Silakan login dengan password baru Anda.');
-
-        ModalManager.close('resetModal');
-        ModalManager.open('loginModal');
-        document.getElementById('resetForm').reset();
-    },
-
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        // Login/Register features have been removed
     }
 };
 
-// ===== User Management =====
+// ===== User Management (Disabled - Login/Register removed) =====
 const UserManager = {
     init() {
-        this.updateUI();
-        this.bindEvents();
-    },
-
-    bindEvents() {
-        // User avatar click
-        document.getElementById('userAvatar')?.addEventListener('click', () => this.toggleDropdown());
-
-        // Logout button
-        document.getElementById('logoutBtn')?.addEventListener('click', () => this.logout());
-
-        // Close dropdown on outside click
-        document.addEventListener('click', (e) => {
-            const userMenu = document.getElementById('userMenu');
-            const dropdown = document.getElementById('userDropdown');
-
-            if (userMenu && !userMenu.contains(e.target)) {
-                dropdown?.classList.remove('active');
-            }
-        });
-    },
-
-    toggleDropdown() {
-        const dropdown = document.getElementById('userDropdown');
-        dropdown?.classList.toggle('active');
-    },
-
-    updateUI() {
-        const userData = JSON.parse(localStorage.getItem('gopos-user'));
-        const loginBtn = document.getElementById('loginBtn');
-        const registerBtn = document.getElementById('registerBtn');
-        const userMenu = document.getElementById('userMenu');
-        const userName = document.getElementById('userName');
-        const userEmail = document.getElementById('userEmail');
-        const userAvatar = document.getElementById('userAvatar');
-
-        if (userData) {
-            loginBtn?.classList.add('hidden');
-            registerBtn?.classList.add('hidden');
-            userMenu?.classList.remove('hidden');
-
-            if (userName) userName.textContent = userData.name;
-            if (userEmail) userEmail.textContent = userData.email;
-            if (userAvatar) userAvatar.textContent = userData.name.charAt(0).toUpperCase();
-        } else {
-            loginBtn?.classList.remove('hidden');
-            registerBtn?.classList.remove('hidden');
-            userMenu?.classList.add('hidden');
-        }
-    },
-
-    async logout() {
-        const result = await Alert.confirm('Keluar?', 'Apakah Anda yakin ingin keluar dari akun?');
-
-        if (result.isConfirmed) {
-            localStorage.removeItem('gopos-user');
-            document.getElementById('userDropdown')?.classList.remove('active');
-            this.updateUI();
-            Toast.show('Berhasil keluar dari akun', 'success');
-        }
+        // User management features have been removed
     }
 };
 

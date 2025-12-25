@@ -945,7 +945,7 @@ ul {
 
 .service-card:hover {
   transform: translateX(10px);
-  border-color: var(--pos-orange);
+  border-color: var(--pos-navy);
   box-shadow: var(--shadow-lg);
 }
 
@@ -953,12 +953,18 @@ ul {
   width: 72px;
   height: 72px;
   min-width: 72px;
-  background: var(--gradient-secondary);
+  background: rgba(30, 58, 95, 0.1);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
+  transition: var(--transition-normal);
+}
+
+.service-card:hover .service-icon {
+  background: var(--gradient-primary);
+  transform: scale(1.1);
 }
 
 .service-content h3 {
@@ -974,7 +980,7 @@ ul {
 }
 
 .service-link {
-  color: var(--pos-orange);
+  color: var(--pos-navy);
   font-weight: 600;
   display: inline-flex;
   align-items: center;
@@ -984,6 +990,7 @@ ul {
 
 .service-link:hover {
   gap: 12px;
+  color: var(--pos-navy-light);
 }
 
 /* ===== CTA Section ===== */

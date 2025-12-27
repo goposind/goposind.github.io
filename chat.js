@@ -308,7 +308,12 @@ const ChatManager = {
         let formatted = content
             // Escape HTML first
             .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
+            .replace(/>/g, '&gt;');
+
+        // Parse markdown tables
+        formatted = this.parseMarkdownTables(formatted);
+
+        formatted = formatted
             // Code blocks (```)
             .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
             // Inline code (`)
@@ -322,10 +327,96 @@ const ChatManager = {
             .replace(/^- /gm, '<span class="bullet">•</span> ')
             // Numbered lists
             .replace(/^(\d+)\. /gm, '<span class="number">$1.</span> ')
-            // Line breaks
+            // Line breaks (but not inside tables)
             .replace(/\n/g, '<br>');
 
         return formatted;
+    },
+
+    // Parse markdown tables into HTML tables
+    parseMarkdownTables(text) {
+        const lines = text.split('\n');
+        let result = [];
+        let tableLines = [];
+        let inTable = false;
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+
+            // Check if line looks like a table row (starts and ends with |)
+            if (line.startsWith('|') && line.endsWith('|')) {
+                // Check if it's a separator line (|---|---|)
+                const isSeparator = /^\|[\s\-:]+\|$/.test(line.replace(/\|/g, '|').replace(/[^|\-:\s]/g, ''));
+
+                if (!inTable) {
+                    inTable = true;
+                    tableLines = [];
+                }
+
+                tableLines.push({ line, isSeparator });
+            } else {
+                // If we were in a table, render it
+                if (inTable && tableLines.length > 0) {
+                    result.push(this.renderTable(tableLines));
+                    tableLines = [];
+                    inTable = false;
+                }
+                result.push(line);
+            }
+        }
+
+        // Handle table at the end of content
+        if (inTable && tableLines.length > 0) {
+            result.push(this.renderTable(tableLines));
+        }
+
+        return result.join('\n');
+    },
+
+    // Render a markdown table as HTML
+    renderTable(tableLines) {
+        if (tableLines.length < 2) {
+            // Not enough lines for a valid table
+            return tableLines.map(t => t.line).join('\n');
+        }
+
+        let html = '<div class="table-container"><table class="chat-table">';
+        let isHeader = true;
+        let hasRenderedHeader = false;
+
+        for (const { line, isSeparator } of tableLines) {
+            if (isSeparator) {
+                // Skip separator line, but mark that next rows are body
+                isHeader = false;
+                continue;
+            }
+
+            // Parse cells
+            const cells = line
+                .split('|')
+                .slice(1, -1) // Remove empty first and last elements
+                .map(cell => cell.trim());
+
+            if (cells.length === 0) continue;
+
+            if (isHeader && !hasRenderedHeader) {
+                html += '<thead><tr>';
+                cells.forEach(cell => {
+                    html += `<th>${cell}</th>`;
+                });
+                html += '</tr></thead><tbody>';
+                hasRenderedHeader = true;
+            } else {
+                html += '<tr>';
+                cells.forEach(cell => {
+                    html += `<td>${cell}</td>`;
+                });
+                html += '</tr>';
+            }
+        }
+
+        html += '</tbody></table></div>';
+        return html;
     },
 
     showTyping() {

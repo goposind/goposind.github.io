@@ -256,6 +256,8 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    height: 100dvh;
+    /* Dynamic viewport for mobile browsers */
     overflow: hidden;
 }
 
@@ -290,11 +292,14 @@ body {
     align-items: center;
     justify-content: center;
     padding: 2rem;
+    overflow-y: auto;
+    min-height: 0;
 }
 
 .welcome-content {
     text-align: center;
     max-width: 700px;
+    padding-bottom: 1rem;
 }
 
 .welcome-icon {
@@ -491,6 +496,75 @@ body {
     color: var(--text-primary);
 }
 
+/* Table styling for chat messages */
+.table-container {
+    overflow-x: auto;
+    margin: 0.75rem 0;
+    border-radius: 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+}
+
+.chat-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    min-width: 280px;
+}
+
+.chat-table th,
+.chat-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+}
+
+.chat-table th {
+    background: var(--bg-hover);
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.chat-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.chat-table tbody tr:hover {
+    background: var(--bg-hover);
+}
+
+.chat-table td {
+    color: var(--text-secondary);
+}
+
+/* Make first column standout */
+.chat-table td:first-child {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Mobile responsiveness for tables */
+@media (max-width: 480px) {
+    .table-container {
+        margin: 0.5rem 0;
+        border-radius: 8px;
+    }
+
+    .chat-table th,
+    .chat-table td {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .chat-table th {
+        font-size: 0.75rem;
+    }
+}
+
 /* Bullet and number styling */
 .message-content .bullet {
     color: var(--accent-primary);
@@ -611,10 +685,13 @@ body {
 
 /* ===== Chat Input ===== */
 .chat-input-container {
-    padding: 1rem 2rem 1.5rem;
+    padding: 1rem 2rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
     max-width: 900px;
     margin: 0 auto;
     width: 100%;
+    flex-shrink: 0;
+    background: var(--bg-primary);
 }
 
 .chat-input-wrapper {
@@ -720,12 +797,60 @@ body {
         display: flex;
     }
 
+    .main-content {
+        height: 100vh;
+        height: 100dvh;
+        /* Dynamic viewport height for mobile */
+    }
+
+    .welcome-screen {
+        padding: 1rem;
+        align-items: flex-start;
+        padding-top: 1.5rem;
+    }
+
+    .welcome-content {
+        width: 100%;
+    }
+
     .welcome-content h1 {
         font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .welcome-content p {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .welcome-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
     }
 
     .suggestion-cards {
         grid-template-columns: 1fr;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .suggestion-card {
+        padding: 0.75rem;
+    }
+
+    .card-icon {
+        font-size: 1rem;
+        margin-bottom: 0.125rem;
+    }
+
+    .card-title {
+        font-size: 0.8rem;
+    }
+
+    .card-desc {
+        font-size: 0.7rem;
     }
 
     .message {
@@ -733,7 +858,13 @@ body {
     }
 
     .chat-input-container {
-        padding: 1rem;
+        padding: 0.75rem 1rem;
+        flex-shrink: 0;
+    }
+
+    .input-hint {
+        font-size: 0.65rem;
+        margin-top: 0.25rem;
     }
 }
 

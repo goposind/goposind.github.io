@@ -1328,7 +1328,7 @@ ul {
 }
 
 .form-footer a {
-  color: var(--pos-navy);
+  color: #4DA3FF;
   font-weight: 600;
   transition: var(--transition-fast);
 }
@@ -1345,7 +1345,7 @@ ul {
 }
 
 .form-links a {
-  color: var(--pos-navy);
+  color: #4DA3FF;
   font-size: 0.9rem;
   font-weight: 500;
 }

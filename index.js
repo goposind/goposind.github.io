@@ -181,9 +181,10 @@ const FormManager = {
     async handleLogin(e) {
         e.preventDefault();
         const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
 
-        if (!email) {
-            Toast.show('Masukkan email Anda', 'error');
+        if (!email || !password) {
+            Toast.show('Masukkan email dan password', 'error');
             return;
         }
 
@@ -193,7 +194,7 @@ const FormManager = {
             const response = await fetch(`${CONFIG.apiUrl}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email })
+                body: JSON.stringify({ email: email, password: password })
             });
 
             const data = await response.json();
@@ -207,7 +208,7 @@ const FormManager = {
                     Alert.success('Berhasil!', 'Anda telah berhasil login.');
                 }, 200);
             } else {
-                Alert.error('Gagal Login', data.message || 'Email tidak ditemukan.');
+                Alert.error('Gagal Login', data.message || 'Email atau password salah.');
             }
         } catch (error) {
             Swal.close();
@@ -220,9 +221,21 @@ const FormManager = {
         e.preventDefault();
         const name = document.getElementById('registerName').value;
         const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
 
-        if (!name || !email) {
+        if (!name || !email || !password) {
             Toast.show('Lengkapi semua field', 'error');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            Toast.show('Password tidak cocok', 'error');
+            return;
+        }
+
+        if (password.length < 6) {
+            Toast.show('Password minimal 6 karakter', 'error');
             return;
         }
 
@@ -235,6 +248,7 @@ const FormManager = {
                 body: JSON.stringify({
                     name: name,
                     email: email,
+                    password: password,
                     role: 'user',
                     status: 'active'
                 })

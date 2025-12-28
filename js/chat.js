@@ -54,6 +54,8 @@ const AuthManager = {
         const userData = localStorage.getItem('gopos-user');
         this.user = userData ? JSON.parse(userData) : null;
         this.updateUI();
+        console.log('🔐 Auth initialized. Token:', this.token ? 'Present' : 'Missing');
+        console.log('🔐 User:', this.user);
     },
 
     isLoggedIn() {
@@ -71,6 +73,9 @@ const AuthManager = {
         const headers = { 'Content-Type': 'application/json' };
         if (this.token) {
             headers['Authorization'] = this.token;
+            console.log('📤 Auth headers created with token');
+        } else {
+            console.warn('⚠️ No token available for auth headers');
         }
         return headers;
     }
@@ -105,6 +110,7 @@ const SidebarManager = {
 const ChatManager = {
     messages: [],
     conversationHistory: [], // For Gemini API context
+    serverHistory: null, // Store full server history for sidebar persistence
     isTyping: false,
 
     init() {
@@ -183,6 +189,9 @@ const ChatManager = {
                 const data = await response.json();
                 console.log('📥 History loaded:', data);
 
+                // Save server history for sidebar persistence
+                this.serverHistory = data;
+
                 if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
                     this.messages = data.messages.map(m => ({
                         userMessage: m.message,
@@ -197,9 +206,10 @@ const ChatManager = {
                 }
             } else {
                 console.error('❌ Failed to load history:', response.status);
+                console.error('❌ Response:', await response.text());
                 if (response.status === 401) {
-                    // Token expired or invalid
-                    AuthManager.logout(); // Optional: logout user
+                    console.warn('⚠️ Token may be expired or invalid. Please logout and login again.');
+                    console.warn('⚠️ Current token:', this.token);
                 }
             }
         } catch (error) {
@@ -548,7 +558,13 @@ const ChatManager = {
             this.showFollowUpSuggestions(text, botResponse);
 
             this.scrollToBottom();
-            this.renderHistorySidebar();
+
+            // Refresh server history to keep sidebar updated
+            if (AuthManager.isLoggedIn()) {
+                await this.refreshServerHistory();
+            } else {
+                this.renderHistorySidebar();
+            }
 
         } catch (error) {
             console.error('Chat error:', error);
@@ -568,19 +584,17 @@ const ChatManager = {
     },
 
     newChat() {
+        // Clear current session state only - don't delete saved history
         this.messages = [];
         this.conversationHistory = [];
 
-        if (!AuthManager.isLoggedIn()) {
-            sessionStorage.removeItem('gopos-chat-messages');
-        } else {
-            // Clear server history
-            this.clearServerHistory();
-        }
-
+        // Clear UI and show welcome screen
         this.messagesContainer.innerHTML = '';
         this.messagesContainer.classList.remove('active');
         this.welcomeScreen.style.display = 'flex';
+
+        // Render sidebar to show "empty" state for current session
+        // History remains in storage (sessionStorage for guests, server for logged-in users)
         this.renderHistorySidebar();
         SidebarManager.close();
     },
@@ -671,21 +685,41 @@ const ChatManager = {
         return suggestions.slice(0, 3);
     },
 
+    async refreshServerHistory() {
+        try {
+            const response = await fetch(`${CONFIG.apiUrl}${CONFIG.endpoints.history}`, {
+                headers: AuthManager.getAuthHeaders()
+            });
+            if (response.ok) {
+                this.serverHistory = await response.json();
+                this.renderHistorySidebar();
+            }
+        } catch (error) {
+            console.error('Failed to refresh server history:', error);
+        }
+    },
+
     renderHistorySidebar() {
         const todayHistory = document.getElementById('todayHistory');
         const previousHistory = document.getElementById('previousHistory');
 
         if (!todayHistory || !previousHistory) return;
 
-        if (this.messages.length === 0) {
+        // For logged-in users, use serverHistory; for guests, use this.messages
+        const historyMessages = AuthManager.isLoggedIn()
+            ? (this.serverHistory?.messages || [])
+            : this.messages;
+
+        if (historyMessages.length === 0) {
             todayHistory.innerHTML = '<div class="history-item empty-state" style="cursor: default; opacity: 0.7;">Belum ada percakapan</div>';
             previousHistory.innerHTML = '';
             return;
         }
 
-        // Get first message as title
-        const firstMessage = this.messages[0]?.userMessage || 'Chat';
-        const title = firstMessage.substring(0, 30) + (firstMessage.length > 30 ? '...' : '');
+        // Get latest message as title (most recent conversation)
+        const latestMessage = historyMessages[historyMessages.length - 1];
+        const messageText = latestMessage.userMessage || latestMessage.message || 'Chat';
+        const title = messageText.substring(0, 30) + (messageText.length > 30 ? '...' : '');
 
         todayHistory.innerHTML = `
             <div class="history-item active">

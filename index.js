@@ -1,9 +1,9 @@
 // ===== GOPOS - GO-LANG POS ASSISTANT =====
-// JavaScript for Landing Page
 
+// JavaScript for Landing Page
 // ===== Configuration =====
 const CONFIG = {
-    whatsappNumber: '6281234567890', // Ganti dengan nomor WhatsApp GOPOS
+    whatsappNumber: '6282126391498',
     whatsappMessage: 'Halo GOPOS! Saya ingin bertanya tentang layanan Pos Indonesia.',
     animationDelay: 100,
     counterDuration: 2000,

@@ -33,7 +33,7 @@ const Toast = {
     show(message, type = 'info') {
         const ToastMixin = Swal.mixin({
             toast: true, position: 'top-end', showConfirmButton: false,
-            timer: 3000, timerProgressBar: true
+            timer: 1000, timerProgressBar: true
         });
         ToastMixin.fire({ icon: type, title: message });
     }
@@ -66,7 +66,7 @@ const AuthManager = {
 
     redirectToLogin() {
         Toast.show('Silakan login terlebih dahulu', 'warning');
-        setTimeout(() => window.location.href = 'index.html', 1500);
+        setTimeout(() => window.location.href = 'index.html', 1000);
     },
 
     logout() {

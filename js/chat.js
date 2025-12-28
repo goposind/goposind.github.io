@@ -1,5 +1,4 @@
 // ===== GOPOS Chat Page - ChatGPT/Gemini Style =====
-// Uses same backend API as index.html demo bot + chat history
 
 const CONFIG = {
     apiUrl: 'https://asia-southeast2-proyek3-smz.cloudfunctions.net/GoPosInd',

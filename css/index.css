@@ -2275,8 +2275,11 @@ ul {
 /* Mobile responsive */
 @media (max-width: 480px) {
   .chatbot-window {
-    width: calc(100vw - 48px);
-    right: -12px;
+    max-width: calc(100vw - 48px) !important;
+    max-height: 80vh !important;
+    bottom: 90px !important;
+    /* Above toggle button */
+    right: 24px !important;
   }
 
   .chatbot-demo {

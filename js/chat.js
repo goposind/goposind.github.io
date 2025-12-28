@@ -175,13 +175,16 @@ const ChatManager = {
 
         // Load from server for logged-in users
         try {
+            console.log('🔄 Loading chat history...');
             const response = await fetch(`${CONFIG.apiUrl}${CONFIG.endpoints.history}`, {
                 headers: AuthManager.getAuthHeaders()
             });
 
             if (response.ok) {
                 const data = await response.json();
-                if (data.messages && data.messages.length > 0) {
+                console.log('📥 History loaded:', data);
+
+                if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
                     this.messages = data.messages.map(m => ({
                         userMessage: m.message,
                         botResponse: m.response,
@@ -190,10 +193,18 @@ const ChatManager = {
                     }));
                     this.rebuildConversationHistory();
                     this.renderMessages();
+                } else {
+                    console.log('ℹ️ Chat history is empty');
+                }
+            } else {
+                console.error('❌ Failed to load history:', response.status);
+                if (response.status === 401) {
+                    // Token expired or invalid
+                    AuthManager.logout(); // Optional: logout user
                 }
             }
         } catch (error) {
-            console.error('Failed to load chat history:', error);
+            console.error('❌ Error loading chat history:', error);
         }
 
         this.renderHistorySidebar();
@@ -668,7 +679,7 @@ const ChatManager = {
         if (!todayHistory || !previousHistory) return;
 
         if (this.messages.length === 0) {
-            todayHistory.innerHTML = '<div class="history-item" style="color: var(--text-muted); font-style: italic;">Belum ada percakapan</div>';
+            todayHistory.innerHTML = '<div class="history-item empty-state" style="cursor: default; opacity: 0.7;">Belum ada percakapan</div>';
             previousHistory.innerHTML = '';
             return;
         }

@@ -19,7 +19,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Styles -->
-    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="css/dashboard.css">
 </head>
 
 <body>
@@ -135,6 +135,18 @@
                     </table>
                 </div>
             </div>
+            <!-- Pagination -->
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Showing <span id="startRange">0</span>-<span id="endRange">0</span> of <span
+                        id="totalItems">0</span> users
+                </div>
+                <div class="pagination-controls">
+                    <button class="btn-page" id="prevBtn" disabled>◀ Prev</button>
+                    <button class="btn-page" id="nextBtn" disabled>Next ▶</button>
+                </div>
+            </div>
+        </div>
         </div>
     </main>
 
@@ -145,7 +157,7 @@
         </div>
     </footer>
 
-    <script src="dashboard.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 
 </html>

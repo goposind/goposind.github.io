@@ -30,7 +30,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <!-- Styles -->
-  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="css/index.css">
 </head>
 
 <body>
@@ -70,9 +70,11 @@
             <span>👤</span> <span id="userName">User</span>
           </button>
           <div class="user-dropdown" id="userDropdown">
-            <a href="chat.html" class="dropdown-item">💬 Chat AI</a>
-            <a href="dashboard.html" class="dropdown-item">📊 Dashboard</a>
-            <button class="dropdown-item" onclick="UserManager.logout()">🚪 Keluar</button>
+            <a href="chat.html" class="dropdown-item"><span>💬</span> Chat AI</a>
+            <a href="dashboard.html" class="dropdown-item" id="dashboardLink"><span>📊</span> Dashboard</a>
+            <a href="https://wa.me/6282126391498" target="_blank" class="dropdown-item"><span>📱</span> Chat
+              WhatsApp</a>
+            <button class="dropdown-item" onclick="UserManager.logout()"><span>🚪</span> Keluar</button>
           </div>
         </div>
 
@@ -498,24 +500,24 @@
       </form>
     </div>
   </div>
-  <!-- Chatbot Demo Widget
+  <!-- Chatbot Demo Widget -->
   <div class="chatbot-demo" id="chatbotDemo">
     <button class="chatbot-toggle" id="chatbotToggle">
       <span class="chatbot-icon">🤖</span>
       <span class="chatbot-close">✕</span>
     </button>
     <div class="chatbot-window" id="chatbotWindow">
-      <-- Resize handle at top-left corner -->
-  <!-- <div class="chatbot-resize-handle" id="chatbotResizeHandle" title="Drag untuk resize"></div>
+      <!--Resize handle at top-left corner -->
+      <div class="chatbot-resize-handle" id="chatbotResizeHandle" title="Drag untuk resize"></div>
 
       <div class="chatbot-header">
         <div class="chatbot-avatar">📮</div>
         <div class="chatbot-title">
           <strong>GOPOS Bot</strong>
           <span>Online • AI Mode</span>
-        </div> -->
-  <!-- Size control buttons -->
-  <!-- <div class="chatbot-size-controls">
+        </div>
+        <!-- Size control buttons -->
+        <div class="chatbot-size-controls">
           <button class="chatbot-size-btn" id="sizeSmall" title="Kecil">S</button>
           <button class="chatbot-size-btn" id="sizeMedium" title="Sedang">M</button>
           <button class="chatbot-size-btn" id="sizeLarge" title="Besar">L</button>
@@ -544,9 +546,9 @@
         <button class="suggestion-btn" data-msg="Layanan pos indonesia">🚚 Info Layanan</button>
       </div>
     </div>
-  </div> -->
+  </div>
 
-  <script src="index.js"></script>
+  <script src="js/index.js"></script>
 
   <!-- GOPOS Chatbot Backend Integration - Secure Proxy -->
   <script>

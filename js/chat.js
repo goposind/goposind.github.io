@@ -656,37 +656,46 @@ const ChatManager = {
         const lowerMessage = userMessage.toLowerCase();
         const lowerResponse = botResponse.toLowerCase();
 
-        // Ongkir related
-        if (lowerMessage.includes('ongkir') || lowerMessage.includes('tarif') || lowerResponse.includes('ongkir')) {
-            suggestions.push('Berapa estimasi waktu pengirimannya?');
-            suggestions.push('Apa perbedaan layanan Pos Kilat dan Pos Express?');
-            if (!lowerMessage.includes('jakarta')) {
-                suggestions.push('Berapa ongkir dari Jakarta ke Bandung 2kg?');
+        // International shipping related
+        if (lowerMessage.includes('internasional') || lowerMessage.includes('ems') || 
+            lowerMessage.includes('luar negeri') || lowerResponse.includes('internasional') ||
+            lowerResponse.includes('zona')) {
+            suggestions.push('Berapa ongkir ke Jepang 1kg?');
+            suggestions.push('Dokumen apa saja untuk ekspor?');
+            suggestions.push('Berapa lama pengiriman EMS?');
+        }
+        // Ongkir related (both domestic and international)
+        else if (lowerMessage.includes('ongkir') || lowerMessage.includes('tarif') || lowerResponse.includes('ongkir')) {
+            suggestions.push('Berapa ongkir ke Malaysia 2kg?');
+            suggestions.push('Apa perbedaan EMS dan Paket Pos?');
+            if (!lowerMessage.includes('singapura') && !lowerMessage.includes('singapore')) {
+                suggestions.push('Berapa ongkir ke Singapura 1kg?');
             }
+        }
+        // Document related
+        else if (lowerMessage.includes('dokumen') || lowerMessage.includes('cn23') || 
+                 lowerResponse.includes('dokumen') || lowerResponse.includes('invoice')) {
+            suggestions.push('Cara mengisi CN23?');
+            suggestions.push('Apa itu Commercial Invoice?');
+            suggestions.push('Batas nilai barang ekspor?');
         }
         // Kantor pos related
         else if (lowerMessage.includes('kantor pos') || lowerMessage.includes('lokasi') || lowerResponse.includes('kantor pos')) {
             suggestions.push('Jam operasional kantor pos?');
-            suggestions.push('Layanan apa saja yang tersedia?');
+            suggestions.push('Bisa kirim EMS di semua kantor pos?');
             suggestions.push('Apakah bisa ambil paket di kantor pos?');
         }
         // Layanan related
         else if (lowerMessage.includes('layanan') || lowerResponse.includes('layanan')) {
-            suggestions.push('Berapa tarif masing-masing layanan?');
-            suggestions.push('Mana yang paling cepat sampai?');
-            suggestions.push('Apakah ada layanan same day?');
+            suggestions.push('Apa itu EMS?');
+            suggestions.push('Berapa tarif kirim ke Eropa?');
+            suggestions.push('Negara mana saja yang dijangkau?');
         }
-        // Syarat related
-        else if (lowerMessage.includes('syarat') || lowerResponse.includes('syarat') || lowerResponse.includes('ketentuan')) {
-            suggestions.push('Bagaimana cara packing yang benar?');
-            suggestions.push('Berapa berat maksimal yang bisa dikirim?');
-            suggestions.push('Dokumen apa saja yang diperlukan?');
-        }
-        // Default suggestions
+        // Default suggestions - mix of domestic and international
         else {
-            suggestions.push('Berapa ongkir dari Jakarta ke Surabaya?');
-            suggestions.push('Di mana kantor pos terdekat?');
-            suggestions.push('Apa saja layanan Pos Indonesia?');
+            suggestions.push('Berapa ongkir ke Singapura?');
+            suggestions.push('Berapa ongkir Jakarta ke Bandung?');
+            suggestions.push('Apa saja layanan pengiriman internasional?');
         }
 
         // Limit to 3 suggestions

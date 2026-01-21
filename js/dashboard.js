@@ -369,12 +369,184 @@ const UserManagement = {
     }
 };
 
+// ===== Tab Manager =====
+const TabManager = {
+    currentTab: 'users',
+
+    init() {
+        this.bindEvents();
+    },
+
+    bindEvents() {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                this.switchTab(tab);
+            });
+        });
+    },
+
+    switchTab(tab) {
+        if (tab === this.currentTab) return;
+
+        // Update button states
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tab);
+        });
+
+        // Update content visibility
+        document.getElementById('usersSection').style.display = tab === 'users' ? 'block' : 'none';
+        document.getElementById('chatHistorySection').style.display = tab === 'chatHistory' ? 'block' : 'none';
+
+        this.currentTab = tab;
+
+        // Load data for the active tab
+        if (tab === 'chatHistory') {
+            ChatHistoryManager.loadSessions();
+        }
+    }
+};
+
+// ===== Chat History Manager =====
+const ChatHistoryManager = {
+    sessions: [],
+
+    init() {
+        this.bindEvents();
+    },
+
+    bindEvents() {
+        const refreshBtn = document.getElementById('refreshChatBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.loadSessions());
+        }
+
+        const searchInput = document.getElementById('searchChatInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => this.filterSessions(e.target.value));
+        }
+    },
+
+    async loadSessions() {
+        const tbody = document.getElementById('chatTableBody');
+        tbody.innerHTML = `<tr><td colspan="5" class="loading-row"><div class="loading-spinner"></div><span>Memuat data...</span></td></tr>`;
+
+        try {
+            const response = await fetch(`${CONFIG.apiUrl}/api/admin/chat-sessions`, {
+                headers: AuthManager.getAuthHeaders()
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch');
+
+            const data = await response.json();
+            this.sessions = data.sessions || [];
+
+            // Update stats
+            document.getElementById('totalSessions').textContent = data.total_sessions || 0;
+            document.getElementById('totalMessages').textContent = data.total_messages || 0;
+            document.getElementById('todaySessions').textContent = data.today_sessions || 0;
+
+            this.renderTable();
+        } catch (error) {
+            console.error('Error loading chat sessions:', error);
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: #ef4444;">Gagal memuat data</td></tr>`;
+        }
+    },
+
+    renderTable() {
+        const tbody = document.getElementById('chatTableBody');
+
+        if (this.sessions.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; opacity: 0.7;">Belum ada chat session</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = this.sessions.map(session => {
+            const date = new Date(session.updated_at).toLocaleDateString('id-ID', {
+                day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+
+            return `
+                <tr>
+                    <td>
+                        <div style="font-weight: 500;">${this.escapeHtml(session.user_name || 'Unknown')}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">${this.escapeHtml(session.user_email || '')}</div>
+                    </td>
+                    <td class="message-preview">${this.escapeHtml(session.title || 'Untitled')}</td>
+                    <td><span class="badge badge-info">${session.message_count || 0} pesan</span></td>
+                    <td style="font-size: 0.85rem; color: var(--text-secondary);">${date}</td>
+                    <td>
+                        <button class="btn-view" onclick="ChatHistoryManager.viewSession('${session.id}')">👁️ Lihat</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    },
+
+    filterSessions(query) {
+        const rows = document.querySelectorAll('#chatTableBody tr');
+        const q = query.toLowerCase();
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(q) ? '' : 'none';
+        });
+    },
+
+    async viewSession(sessionId) {
+        try {
+            const response = await fetch(`${CONFIG.apiUrl}/api/chat/sessions/${sessionId}`, {
+                headers: AuthManager.getAuthHeaders()
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch session');
+
+            const session = await response.json();
+
+            // Build messages HTML
+            let messagesHtml = '';
+            if (session.messages && session.messages.length > 0) {
+                messagesHtml = session.messages.map(msg => `
+                    <div style="margin-bottom: 1rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: 8px;">
+                        <div style="font-weight: 500; color: var(--accent-primary);">👤 User:</div>
+                        <div style="margin-bottom: 0.5rem;">${this.escapeHtml(msg.message)}</div>
+                        <div style="font-weight: 500; color: var(--success);">🤖 Bot:</div>
+                        <div style="white-space: pre-wrap;">${this.escapeHtml(msg.response)}</div>
+                    </div>
+                `).join('');
+            } else {
+                messagesHtml = '<p style="text-align:center; opacity: 0.7;">Tidak ada pesan</p>';
+            }
+
+            Swal.fire({
+                title: `💬 ${session.title || 'Chat Session'}`,
+                html: `<div style="max-height: 400px; overflow-y: auto; text-align: left;">${messagesHtml}</div>`,
+                width: 600,
+                showCloseButton: true,
+                confirmButtonText: 'Tutup'
+            });
+        } catch (error) {
+            console.error('Error viewing session:', error);
+            Toast.show('Gagal memuat detail chat', 'error');
+        }
+    },
+
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+};
+
 // ===== Initialize Dashboard =====
 document.addEventListener('DOMContentLoaded', () => {
     ThemeManager.init();
 
     if (AuthManager.init()) {
         UserManagement.init();
+        TabManager.init();
+        ChatHistoryManager.init();
         console.log('📊 GOPOS Admin Dashboard Initialized');
     }
 });
@@ -383,3 +555,4 @@ document.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('beforeunload', () => {
     UserManagement.stopPolling();
 });
+

@@ -57,96 +57,180 @@
     <!-- Main Content -->
     <main class="dashboard-main">
         <div class="container">
-            <!-- Header -->
-            <div class="dashboard-header">
-                <div class="header-content">
-                    <h1>👥 Manajemen User</h1>
-                    <p>Kelola semua pengguna aplikasi GOPOS</p>
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-btn active" data-tab="users">
+                    <span>👥</span> Manajemen User
+                </button>
+                <button class="tab-btn" data-tab="chatHistory">
+                    <span>💬</span> Riwayat Chat
+                </button>
+            </div>
+
+            <!-- Users Section -->
+            <div class="tab-content active" id="usersSection">
+                <!-- Header -->
+                <div class="dashboard-header">
+                    <div class="header-content">
+                        <h1>👥 Manajemen User</h1>
+                        <p>Kelola semua pengguna aplikasi GOPOS</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" id="addUserBtn">
+                            <span>➕</span> Tambah User
+                        </button>
+                        <button class="btn btn-secondary" id="refreshBtn">
+                            <span>🔄</span> Refresh
+                        </button>
+                    </div>
                 </div>
-                <div class="header-actions">
-                    <button class="btn btn-primary" id="addUserBtn">
-                        <span>➕</span> Tambah User
-                    </button>
-                    <button class="btn btn-secondary" id="refreshBtn">
-                        <span>🔄</span> Refresh
-                    </button>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="totalUsers">0</div>
+                            <div class="stat-label">Total User</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="activeUsers">0</div>
+                            <div class="stat-label">User Aktif</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔑</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="adminUsers">0</div>
+                            <div class="stat-label">Admin</div>
+                        </div>
+                    </div>
+                    <div class="stat-card realtime-indicator">
+                        <div class="stat-icon">📡</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="realtimeStatus">Live</div>
+                            <div class="stat-label">Realtime</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📋 Daftar User</h2>
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="Cari user...">
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table" id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>Nama</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr>
+                                    <td colspan="5" class="loading-row">
+                                        <div class="loading-spinner"></div>
+                                        <span>Memuat data...</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        Showing <span id="startRange">0</span>-<span id="endRange">0</span> of <span
+                            id="totalItems">0</span> users
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="btn-page" id="prevBtn" disabled>◀ Prev</button>
+                        <button class="btn-page" id="nextBtn" disabled>Next ▶</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Stats Cards -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">👥</div>
-                    <div class="stat-content">
-                        <div class="stat-number" id="totalUsers">0</div>
-                        <div class="stat-label">Total User</div>
+            <!-- Chat History Section -->
+            <div class="tab-content" id="chatHistorySection" style="display: none;">
+                <!-- Header -->
+                <div class="dashboard-header">
+                    <div class="header-content">
+                        <h1>💬 Riwayat Chat</h1>
+                        <p>Lihat semua percakapan chat pengguna</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" id="refreshChatBtn">
+                            <span>🔄</span> Refresh
+                        </button>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">✅</div>
-                    <div class="stat-content">
-                        <div class="stat-number" id="activeUsers">0</div>
-                        <div class="stat-label">User Aktif</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🔑</div>
-                    <div class="stat-content">
-                        <div class="stat-number" id="adminUsers">0</div>
-                        <div class="stat-label">Admin</div>
-                    </div>
-                </div>
-                <div class="stat-card realtime-indicator">
-                    <div class="stat-icon">📡</div>
-                    <div class="stat-content">
-                        <div class="stat-number" id="realtimeStatus">Live</div>
-                        <div class="stat-label">Realtime</div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Users Table -->
-            <div class="card">
-                <div class="card-header">
-                    <h2>📋 Daftar User</h2>
-                    <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Cari user...">
+                <!-- Chat Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">💬</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="totalSessions">0</div>
+                            <div class="stat-label">Total Session</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="totalMessages">0</div>
+                            <div class="stat-label">Total Pesan</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="todaySessions">0</div>
+                            <div class="stat-label">Hari Ini</div>
+                        </div>
                     </div>
                 </div>
-                <div class="table-wrapper">
-                    <table class="data-table" id="usersTable">
-                        <thead>
-                            <tr>
-                                <th>Nama</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usersTableBody">
-                            <tr>
-                                <td colspan="5" class="loading-row">
-                                    <div class="loading-spinner"></div>
-                                    <span>Memuat data...</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+
+                <!-- Chat Sessions Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📋 Daftar Session Chat</h2>
+                        <div class="search-box">
+                            <input type="text" id="searchChatInput" placeholder="Cari chat...">
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table" id="chatTable">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Judul</th>
+                                    <th>Pesan</th>
+                                    <th>Waktu</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="chatTableBody">
+                                <tr>
+                                    <td colspan="5" class="loading-row">
+                                        <div class="loading-spinner"></div>
+                                        <span>Memuat data...</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            <!-- Pagination -->
-            <div class="pagination-container">
-                <div class="pagination-info">
-                    Showing <span id="startRange">0</span>-<span id="endRange">0</span> of <span
-                        id="totalItems">0</span> users
-                </div>
-                <div class="pagination-controls">
-                    <button class="btn-page" id="prevBtn" disabled>◀ Prev</button>
-                    <button class="btn-page" id="nextBtn" disabled>Next ▶</button>
-                </div>
-            </div>
-        </div>
         </div>
     </main>
 

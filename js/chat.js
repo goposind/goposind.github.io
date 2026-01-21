@@ -5,7 +5,8 @@ const CONFIG = {
     endpoints: {
         chatbot: '/api/chatbot',      // Original Gemini endpoint (for guests)
         chat: '/api/chat',             // Chat with history (for logged in users)
-        history: '/api/chat/history'   // Chat history endpoint
+        history: '/api/chat/history',  // Chat history endpoint (legacy)
+        sessions: '/api/chat/sessions' // Multi-session endpoint
     }
 };
 
@@ -110,6 +111,8 @@ const ChatManager = {
     messages: [],
     conversationHistory: [], // For Gemini API context
     serverHistory: null, // Store full server history for sidebar persistence
+    sessions: [],        // List of sessions for sidebar
+    currentSessionId: null, // Current active session ID
     isTyping: false,
 
     init() {
@@ -177,22 +180,48 @@ const ChatManager = {
             return;
         }
 
-        // Load from server for logged-in users
+        // Load sessions list for logged-in users
         try {
-            console.log('🔄 Loading chat history...');
-            const response = await fetch(`${CONFIG.apiUrl}${CONFIG.endpoints.history}`, {
+            console.log('🔄 Loading chat sessions...');
+            const response = await fetch(`${CONFIG.apiUrl}${CONFIG.endpoints.sessions}`, {
                 headers: AuthManager.getAuthHeaders()
             });
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('✅ History loaded:', data.messages?.length || 0, 'messages');
+                this.sessions = data.sessions || [];
+                console.log('✅ Sessions loaded:', this.sessions.length);
 
-                // Save server history for sidebar persistence
-                this.serverHistory = data;
+                // If there are sessions, load the most recent one
+                if (this.sessions.length > 0) {
+                    await this.loadSession(this.sessions[0].id);
+                }
+            } else {
+                console.error('❌ Failed to load sessions:', response.status);
+            }
+        } catch (error) {
+            console.error('Error loading sessions:', error);
+        }
 
-                if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
-                    this.messages = data.messages.map(m => ({
+        this.renderHistorySidebar();
+    },
+
+    // Load a specific session by ID
+    async loadSession(sessionId) {
+        if (!sessionId) return;
+
+        try {
+            const response = await fetch(`${CONFIG.apiUrl}${CONFIG.endpoints.sessions}/${sessionId}`, {
+                headers: AuthManager.getAuthHeaders()
+            });
+
+            if (response.ok) {
+                const session = await response.json();
+                this.currentSessionId = sessionId;
+
+                // Convert to internal format
+                if (session.messages && Array.isArray(session.messages)) {
+                    this.messages = session.messages.map(m => ({
                         userMessage: m.message,
                         botResponse: m.response,
                         source: m.source,
@@ -200,12 +229,15 @@ const ChatManager = {
                     }));
                     this.rebuildConversationHistory();
                     this.renderMessages();
+                } else {
+                    this.messages = [];
+                    this.conversationHistory = [];
                 }
-            } else {
-                console.error('❌ Failed to load history:', response.status);
+
+                console.log('📂 Session loaded:', sessionId);
             }
         } catch (error) {
-            console.error('Error loading chat history:', error);
+            console.error('Error loading session:', error);
         }
 
         this.renderHistorySidebar();
@@ -485,11 +517,12 @@ const ChatManager = {
             let botResponse, source;
 
             if (AuthManager.isLoggedIn()) {
-                // Use /api/chat endpoint (saves history to server)
+                // Use /api/chat endpoint (saves to session)
                 const response = await fetch(`${CONFIG.apiUrl}${CONFIG.endpoints.chat}`, {
                     method: 'POST',
                     headers: AuthManager.getAuthHeaders(),
                     body: JSON.stringify({
+                        session_id: this.currentSessionId || '',
                         message: text,
                         history: this.conversationHistory.slice(-20)
                     })
@@ -500,7 +533,11 @@ const ChatManager = {
                 if (!response.ok) {
                     console.error('❌ Save failed:', response.status, data);
                 } else {
-                    console.log('💾 Message saved');
+                    console.log('💾 Message saved to session:', data.session_id);
+                    // Update currentSessionId if new session was created
+                    if (data.session_id && !this.currentSessionId) {
+                        this.currentSessionId = data.session_id;
+                    }
                 }
 
                 botResponse = data.response || 'Maaf, terjadi kesalahan.';
@@ -572,8 +609,12 @@ const ChatManager = {
 
             this.scrollToBottom();
 
-            // Update sidebar with new message
-            this.renderHistorySidebar();
+            // Refresh sessions list for logged-in users (to update sidebar with new/updated sessions)
+            if (AuthManager.isLoggedIn()) {
+                await this.refreshSessions();
+            } else {
+                this.renderHistorySidebar();
+            }
 
         } catch (error) {
             console.error('Chat error:', error);
@@ -593,17 +634,16 @@ const ChatManager = {
     },
 
     newChat() {
-        // Clear current session state only - don't delete saved history
+        // Clear current session state
         this.messages = [];
         this.conversationHistory = [];
+        this.currentSessionId = null; // Will create new session on first message
 
         // Clear UI and show welcome screen
         this.messagesContainer.innerHTML = '';
         this.messagesContainer.classList.remove('active');
         this.welcomeScreen.style.display = 'flex';
 
-        // Render sidebar to show "empty" state for current session
-        // History remains in storage (sessionStorage for guests, server for logged-in users)
         this.renderHistorySidebar();
         SidebarManager.close();
     },
@@ -657,7 +697,7 @@ const ChatManager = {
         const lowerResponse = botResponse.toLowerCase();
 
         // International shipping related
-        if (lowerMessage.includes('internasional') || lowerMessage.includes('ems') || 
+        if (lowerMessage.includes('internasional') || lowerMessage.includes('ems') ||
             lowerMessage.includes('luar negeri') || lowerResponse.includes('internasional') ||
             lowerResponse.includes('zona')) {
             suggestions.push('Berapa ongkir ke Jepang 1kg?');
@@ -673,8 +713,8 @@ const ChatManager = {
             }
         }
         // Document related
-        else if (lowerMessage.includes('dokumen') || lowerMessage.includes('cn23') || 
-                 lowerResponse.includes('dokumen') || lowerResponse.includes('invoice')) {
+        else if (lowerMessage.includes('dokumen') || lowerMessage.includes('cn23') ||
+            lowerResponse.includes('dokumen') || lowerResponse.includes('invoice')) {
             suggestions.push('Cara mengisi CN23?');
             suggestions.push('Apa itu Commercial Invoice?');
             suggestions.push('Batas nilai barang ekspor?');
@@ -702,21 +742,21 @@ const ChatManager = {
         return suggestions.slice(0, 3);
     },
 
-    async refreshServerHistory() {
+    // Refresh sessions list from server
+    async refreshSessions() {
         try {
-            const response = await fetch(`${CONFIG.apiUrl}${CONFIG.endpoints.history}`, {
+            const response = await fetch(`${CONFIG.apiUrl}${CONFIG.endpoints.sessions}`, {
                 headers: AuthManager.getAuthHeaders()
             });
 
             if (response.ok) {
-                this.serverHistory = await response.json();
-                console.log('🔄 Sidebar refreshed:', this.serverHistory?.messages?.length || 0, 'messages');
+                const data = await response.json();
+                this.sessions = data.sessions || [];
+                console.log('🔄 Sessions refreshed:', this.sessions.length);
                 this.renderHistorySidebar();
-            } else {
-                console.error('❌ Refresh failed:', response.status);
             }
         } catch (error) {
-            console.error('Failed to refresh server history:', error);
+            console.error('Failed to refresh sessions:', error);
         }
     },
 
@@ -724,24 +764,59 @@ const ChatManager = {
         const todayHistory = document.getElementById('todayHistory');
         const previousHistory = document.getElementById('previousHistory');
 
-        if (!todayHistory || !previousHistory) {
-            console.error('❌ [SIDEBAR] Elements not found!');
+        if (!todayHistory || !previousHistory) return;
+
+        // For logged-in users, show sessions list
+        if (AuthManager.isLoggedIn() && this.sessions.length > 0) {
+            // Get today's date for comparison
+            const today = new Date().toDateString();
+
+            let todayHtml = '';
+            let previousHtml = '';
+
+            this.sessions.forEach(session => {
+                const sessionDate = new Date(session.updated_at).toDateString();
+                const isActive = session.id === this.currentSessionId;
+                const title = this.escapeHtml(session.title || 'Percakapan');
+
+                const itemHtml = `
+                    <div class="history-item ${isActive ? 'active' : ''}" data-session-id="${session.id}" style="cursor: pointer;">
+                        <span class="icon">💬</span>
+                        <span class="title">${title}</span>
+                    </div>
+                `;
+
+                if (sessionDate === today) {
+                    todayHtml += itemHtml;
+                } else {
+                    previousHtml += itemHtml;
+                }
+            });
+
+            todayHistory.innerHTML = todayHtml || '<div class="history-item empty-state" style="cursor: default; opacity: 0.7;">Belum ada chat hari ini</div>';
+            previousHistory.innerHTML = previousHtml;
+
+            // Add click handlers
+            document.querySelectorAll('.history-item[data-session-id]').forEach(item => {
+                item.addEventListener('click', () => {
+                    const sessionId = item.getAttribute('data-session-id');
+                    this.loadSession(sessionId);
+                    SidebarManager.close();
+                });
+            });
+
             return;
         }
 
-        // For logged-in users, use serverHistory; for guests, use this.messages
-        const historyMessages = AuthManager.isLoggedIn()
-            ? (this.serverHistory?.messages || [])
-            : this.messages;
-
-        if (historyMessages.length === 0) {
+        // For guests or no sessions, show message-based history
+        if (this.messages.length === 0) {
             todayHistory.innerHTML = '<div class="history-item empty-state" style="cursor: default; opacity: 0.7;">Belum ada percakapan</div>';
             previousHistory.innerHTML = '';
             return;
         }
 
-        // Get latest message as title (most recent conversation)
-        const latestMessage = historyMessages[historyMessages.length - 1];
+        // Show current session title for guests
+        const latestMessage = this.messages[this.messages.length - 1];
         const messageText = latestMessage.userMessage || latestMessage.message || 'Chat';
         const title = messageText.substring(0, 30) + (messageText.length > 30 ? '...' : '');
 

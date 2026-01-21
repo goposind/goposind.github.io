@@ -208,11 +208,19 @@ const FormManager = {
                     Alert.success('Berhasil!', 'Anda telah berhasil login.');
                 }, 200);
             } else {
-                Alert.error('Gagal Login', data.message || 'Email atau password salah.');
+                // Close modal FIRST, then show error alert
+                ModalManager.close('loginModal');
+                setTimeout(() => {
+                    Alert.error('Gagal Login', data.message || 'Email atau password salah.');
+                }, 200);
             }
         } catch (error) {
             Swal.close();
-            Alert.error('Error', 'Gagal menghubungi server. Silakan coba lagi.');
+            // Close modal FIRST, then show error alert
+            ModalManager.close('loginModal');
+            setTimeout(() => {
+                Alert.error('Error', 'Gagal menghubungi server. Silakan coba lagi.');
+            }, 200);
             console.error('Login error:', error);
         }
     },
@@ -266,11 +274,19 @@ const FormManager = {
                     ModalManager.open('loginModal');
                 }, 200);
             } else {
-                Alert.error('Gagal Daftar', data.message || 'Gagal membuat akun.');
+                // Close modal FIRST, then show error alert
+                ModalManager.close('registerModal');
+                setTimeout(() => {
+                    Alert.error('Gagal Daftar', data.message || 'Gagal membuat akun.');
+                }, 200);
             }
         } catch (error) {
             Swal.close();
-            Alert.error('Error', 'Gagal menghubungi server. Silakan coba lagi.');
+            // Close modal FIRST, then show error alert
+            ModalManager.close('registerModal');
+            setTimeout(() => {
+                Alert.error('Error', 'Gagal menghubungi server. Silakan coba lagi.');
+            }, 200);
             console.error('Register error:', error);
         }
     }

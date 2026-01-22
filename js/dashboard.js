@@ -397,12 +397,15 @@ const TabManager = {
         // Update content visibility
         document.getElementById('usersSection').style.display = tab === 'users' ? 'block' : 'none';
         document.getElementById('chatHistorySection').style.display = tab === 'chatHistory' ? 'block' : 'none';
+        document.getElementById('waChatSection').style.display = tab === 'waChat' ? 'block' : 'none';
 
         this.currentTab = tab;
 
         // Load data for the active tab
         if (tab === 'chatHistory') {
             ChatHistoryManager.loadSessions();
+        } else if (tab === 'waChat') {
+            WAChatHistoryManager.loadChats();
         }
     }
 };
@@ -560,6 +563,174 @@ const ChatHistoryManager = {
     }
 };
 
+// ===== WA Chat History Manager =====
+const WAChatHistoryManager = {
+    chats: [],
+
+    init() {
+        this.bindEvents();
+    },
+
+    bindEvents() {
+        const refreshBtn = document.getElementById('refreshWaChatBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.loadChats());
+        }
+
+        const searchInput = document.getElementById('searchWaChatInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => this.filterChats(e.target.value));
+        }
+    },
+
+    async loadChats() {
+        const tbody = document.getElementById('waChatTableBody');
+        tbody.innerHTML = `<tr><td colspan="4" class="loading-row"><div class="loading-spinner"></div><span>Memuat data...</span></td></tr>`;
+
+        try {
+            const response = await fetch(`${CONFIG.apiUrl}/api/admin/wa/chat/history`, {
+                headers: AuthManager.getAuthHeaders()
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch');
+
+            const data = await response.json();
+            this.chats = data.histories || [];
+
+            // Update stats
+            document.getElementById('totalWaChats').textContent = data.total_chats || 0;
+            document.getElementById('totalWaMessages').textContent = data.total_messages || 0;
+
+            this.renderTable();
+        } catch (error) {
+            console.error('Error loading WA chat history:', error);
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: #ef4444;">Gagal memuat data</td></tr>`;
+        }
+    },
+
+    renderTable() {
+        const tbody = document.getElementById('waChatTableBody');
+
+        if (this.chats.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; opacity: 0.7;">Belum ada chat WhatsApp</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = this.chats.map(chat => {
+            const date = new Date(chat.updated_at).toLocaleDateString('id-ID', {
+                day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+
+            return `
+                <tr>
+                    <td>
+                        <div style="font-weight: 500;">📱 ${this.escapeHtml(chat.phone_number)}</div>
+                    </td>
+                    <td><span class="badge badge-info">${chat.message_count || 0} pesan</span></td>
+                    <td style="font-size: 0.85rem; color: var(--text-secondary);">${date}</td>
+                    <td>
+                        <button class="btn-view" onclick="WAChatHistoryManager.viewChat('${chat.phone_number}')">👁️ Lihat</button>
+                        <button class="btn-icon btn-danger" onclick="WAChatHistoryManager.deleteChat('${chat.phone_number}')" title="Hapus">🗑️</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    },
+
+    filterChats(query) {
+        const rows = document.querySelectorAll('#waChatTableBody tr');
+        const q = query.toLowerCase();
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(q) ? '' : 'none';
+        });
+    },
+
+    async viewChat(phoneNumber) {
+        try {
+            const response = await fetch(`${CONFIG.apiUrl}/api/wa/chat/history/${phoneNumber}`, {
+                headers: AuthManager.getAuthHeaders()
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch chat');
+
+            const chat = await response.json();
+
+            // Build messages HTML
+            let messagesHtml = '';
+            if (chat.messages && chat.messages.length > 0) {
+                messagesHtml = chat.messages.map(msg => {
+                    const time = new Date(msg.timestamp).toLocaleString('id-ID', {
+                        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+                    });
+                    const isUser = msg.role === 'user';
+                    return `
+                        <div style="margin-bottom: 0.75rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: 8px; border-left: 3px solid ${isUser ? 'var(--accent-primary)' : 'var(--success)'};">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                <span style="font-weight: 500; color: ${isUser ? 'var(--accent-primary)' : 'var(--success)'};">${isUser ? '👤 User' : '🤖 Bot'}</span>
+                                <span style="font-size: 0.75rem; color: var(--text-secondary);">${time}</span>
+                            </div>
+                            <div style="white-space: pre-wrap;">${this.escapeHtml(msg.content)}</div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                messagesHtml = '<p style="text-align:center; opacity: 0.7;">Tidak ada pesan</p>';
+            }
+
+            Swal.fire({
+                title: `📱 ${phoneNumber}`,
+                html: `<div style="max-height: 450px; overflow-y: auto; text-align: left;">${messagesHtml}</div>`,
+                width: 650,
+                showCloseButton: true,
+                confirmButtonText: 'Tutup'
+            });
+        } catch (error) {
+            console.error('Error viewing WA chat:', error);
+            Toast.show('Gagal memuat detail chat', 'error');
+        }
+    },
+
+    async deleteChat(phoneNumber) {
+        const result = await Swal.fire({
+            title: 'Hapus Chat?',
+            text: `Riwayat chat WhatsApp ${phoneNumber} akan dihapus permanen.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch(`${CONFIG.apiUrl}/api/wa/chat/history/${phoneNumber}`, {
+                    method: 'DELETE',
+                    headers: AuthManager.getAuthHeaders()
+                });
+
+                if (response.ok) {
+                    Toast.show('Chat berhasil dihapus', 'success');
+                    await this.loadChats();
+                } else {
+                    Toast.show('Gagal menghapus chat', 'error');
+                }
+            } catch (error) {
+                console.error('Delete WA chat error:', error);
+                Toast.show('Gagal menghapus chat', 'error');
+            }
+        }
+    },
+
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+};
+
 // ===== Initialize Dashboard =====
 document.addEventListener('DOMContentLoaded', () => {
     ThemeManager.init();
@@ -568,6 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
         UserManagement.init();
         TabManager.init();
         ChatHistoryManager.init();
+        WAChatHistoryManager.init();
         console.log('📊 GOPOS Admin Dashboard Initialized');
     }
 });

@@ -518,10 +518,31 @@ const ChatHistoryManager = {
                 messagesHtml = '<p style="text-align:center; opacity: 0.7;">Tidak ada pesan</p>';
             }
 
+            // Get full title from first message
+            const fullTitle = session.messages && session.messages.length > 0
+                ? session.messages[0].message
+                : session.title || 'Chat Session';
+
+            // Truncate title to 100 characters for clean display
+            const displayTitle = fullTitle.length > 100
+                ? fullTitle.substring(0, 100) + '...'
+                : fullTitle;
+
+            // Build modal content with header showing full question if truncated
+            let headerHtml = '';
+            if (fullTitle.length > 100) {
+                headerHtml = `
+                    <div style="background: var(--bg-secondary); padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; border-left: 3px solid var(--accent-primary);">
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Pertanyaan lengkap:</div>
+                        <div style="font-size: 0.95rem;">${this.escapeHtml(fullTitle)}</div>
+                    </div>
+                `;
+            }
+
             Swal.fire({
-                title: `💬 ${session.title || 'Chat Session'}`,
-                html: `<div style="max-height: 400px; overflow-y: auto; text-align: left;">${messagesHtml}</div>`,
-                width: 600,
+                title: `💬 ${displayTitle}`,
+                html: `<div style="max-height: 400px; overflow-y: auto; text-align: left;">${headerHtml}${messagesHtml}</div>`,
+                width: 650,
                 showCloseButton: true,
                 confirmButtonText: 'Tutup'
             });

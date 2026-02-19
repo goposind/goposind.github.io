@@ -696,46 +696,88 @@ const ChatManager = {
         const lowerMessage = userMessage.toLowerCase();
         const lowerResponse = botResponse.toLowerCase();
 
+        // Detect if user is writing in English
+        const isEnglish = /\b(how much|shipping|delivery|ship to|send to|cost|price|what|services|available)\b/i.test(userMessage);
+
         // International shipping related
         if (lowerMessage.includes('internasional') || lowerMessage.includes('ems') ||
             lowerMessage.includes('luar negeri') || lowerResponse.includes('internasional') ||
-            lowerResponse.includes('zona')) {
-            suggestions.push('Berapa ongkir ke Jepang 1kg?');
-            suggestions.push('Dokumen apa saja untuk ekspor?');
-            suggestions.push('Berapa lama pengiriman EMS?');
+            lowerResponse.includes('zona') || lowerMessage.includes('international') ||
+            lowerMessage.includes('overseas') || lowerResponse.includes('zone')) {
+            if (isEnglish) {
+                suggestions.push('How much to ship 1kg to Japan?');
+                suggestions.push('What documents for export?');
+                suggestions.push('How long does EMS take?');
+            } else {
+                suggestions.push('Berapa ongkir ke Jepang 1kg?');
+                suggestions.push('Dokumen apa saja untuk ekspor?');
+                suggestions.push('Berapa lama pengiriman EMS?');
+            }
         }
         // Ongkir related (both domestic and international)
-        else if (lowerMessage.includes('ongkir') || lowerMessage.includes('tarif') || lowerResponse.includes('ongkir')) {
-            suggestions.push('Berapa ongkir ke Malaysia 2kg?');
-            suggestions.push('Apa perbedaan EMS dan Paket Pos?');
-            if (!lowerMessage.includes('singapura') && !lowerMessage.includes('singapore')) {
+        else if (lowerMessage.includes('ongkir') || lowerMessage.includes('tarif') || lowerResponse.includes('ongkir') ||
+            lowerMessage.includes('shipping') || lowerMessage.includes('cost') || lowerMessage.includes('rate')) {
+            if (isEnglish) {
+                suggestions.push('How much to ship 2kg to Malaysia?');
+                suggestions.push('What is the difference between EMS and Parcel?');
+                suggestions.push('How much to ship 1kg to Singapore?');
+            } else {
+                suggestions.push('Berapa ongkir ke Malaysia 2kg?');
+                suggestions.push('Apa perbedaan EMS dan Paket Pos?');
                 suggestions.push('Berapa ongkir ke Singapura 1kg?');
             }
         }
         // Document related
         else if (lowerMessage.includes('dokumen') || lowerMessage.includes('cn23') ||
-            lowerResponse.includes('dokumen') || lowerResponse.includes('invoice')) {
-            suggestions.push('Cara mengisi CN23?');
-            suggestions.push('Apa itu Commercial Invoice?');
-            suggestions.push('Batas nilai barang ekspor?');
+            lowerResponse.includes('dokumen') || lowerResponse.includes('invoice') ||
+            lowerMessage.includes('document') || lowerMessage.includes('customs')) {
+            if (isEnglish) {
+                suggestions.push('How to fill CN23?');
+                suggestions.push('What is a Commercial Invoice?');
+                suggestions.push('Export value limit?');
+            } else {
+                suggestions.push('Cara mengisi CN23?');
+                suggestions.push('Apa itu Commercial Invoice?');
+                suggestions.push('Batas nilai barang ekspor?');
+            }
         }
         // Kantor pos related
-        else if (lowerMessage.includes('kantor pos') || lowerMessage.includes('lokasi') || lowerResponse.includes('kantor pos')) {
-            suggestions.push('Jam operasional kantor pos?');
-            suggestions.push('Bisa kirim EMS di semua kantor pos?');
-            suggestions.push('Apakah bisa ambil paket di kantor pos?');
+        else if (lowerMessage.includes('kantor pos') || lowerMessage.includes('lokasi') || lowerResponse.includes('kantor pos') ||
+            lowerMessage.includes('post office') || lowerMessage.includes('location')) {
+            if (isEnglish) {
+                suggestions.push('Post office operating hours?');
+                suggestions.push('Can I send EMS at all post offices?');
+                suggestions.push('Can I pick up packages at the post office?');
+            } else {
+                suggestions.push('Jam operasional kantor pos?');
+                suggestions.push('Bisa kirim EMS di semua kantor pos?');
+                suggestions.push('Apakah bisa ambil paket di kantor pos?');
+            }
         }
         // Layanan related
-        else if (lowerMessage.includes('layanan') || lowerResponse.includes('layanan')) {
-            suggestions.push('Apa itu EMS?');
-            suggestions.push('Berapa tarif kirim ke Eropa?');
-            suggestions.push('Negara mana saja yang dijangkau?');
+        else if (lowerMessage.includes('layanan') || lowerResponse.includes('layanan') ||
+            lowerMessage.includes('service') || lowerResponse.includes('service')) {
+            if (isEnglish) {
+                suggestions.push('What is EMS?');
+                suggestions.push('How much to ship to Europe?');
+                suggestions.push('Which countries are covered?');
+            } else {
+                suggestions.push('Apa itu EMS?');
+                suggestions.push('Berapa tarif kirim ke Eropa?');
+                suggestions.push('Negara mana saja yang dijangkau?');
+            }
         }
-        // Default suggestions - mix of domestic and international
+        // Default suggestions - mix of both languages
         else {
-            suggestions.push('Berapa ongkir ke Singapura?');
-            suggestions.push('Berapa ongkir Jakarta ke Bandung?');
-            suggestions.push('Apa saja layanan pengiriman internasional?');
+            if (isEnglish) {
+                suggestions.push('How much to ship to Singapore?');
+                suggestions.push('Shipping from Jakarta to Bandung?');
+                suggestions.push('What international shipping services?');
+            } else {
+                suggestions.push('Berapa ongkir ke Singapura?');
+                suggestions.push('Berapa ongkir Jakarta ke Bandung?');
+                suggestions.push('Apa saja layanan pengiriman internasional?');
+            }
         }
 
         // Limit to 3 suggestions
